@@ -1,17 +1,17 @@
 /**
  * Mirai Song Plugin
  * Copyright (C) 2021  khjxiaogu
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -32,9 +32,18 @@ public class NetEaseMusicSource implements MusicSource {
 	}
 
 	public String queryRealUrl(String id) throws Exception {
-		return "http://music.163.com/song/media/outer/url?id=" + id + ".mp3";
+//		return "http://music.163.com/song/media/outer/url?id=" + id + ".mp3";
+		JsonObject jom = HttpRequestBuilder.create("music.163.com")
+				.url("/weapi/song/enhance/player/url/v1?csrf_token=")
+				.referer("http://music.163.com/")
+				.cookie("appver=1.5.0.75771;" + NetEaseCrypto.cookie)
+				.contenttype("application/x-www-form-urlencoded")
+				.post()
+				.send(NetEaseCrypto.weapiEncryptParam(JsonBuilder.object().add("encodeType", "aac").add("ids", "[" + id + "]").add("level", "standard").toString()))
+				.readJson();
+		return jom.get("data").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
 	}
-	
+
 
 	@Override
 	public MusicInfo get(String keyword) throws Exception {
